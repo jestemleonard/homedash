@@ -1,0 +1,76 @@
+{{define "weather"}}
+<div class="flex items-center gap-6 text-slate-400 text-sm">
+    <!-- Icon + Temperature + Condition -->
+    <div class="flex items-center gap-3">
+        <!-- Weather Icon (monochrome) -->
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {{if eq .Icon "sun"}}
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            {{else if eq .Icon "cloud-sun"}}
+            <!-- Sun with cloud -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.5 1.5v1.125M15.364 3.636l-.795.795M18 10.5h1.125M3.636 15.364l.795-.795M1.5 10.5h1.125m12.091 4.09A4.5 4.5 0 018.354 9.166a5.25 5.25 0 106.852 6.678"/>
+            {{else if eq .Icon "cloud"}}
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+            {{else if eq .Icon "cloud-rain"}}
+            <!-- Cloud with rain -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 13z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 19v2m4-2v2m4-2v2"/>
+            {{else if eq .Icon "snowflake"}}
+            <!-- Snowflake -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 2v20m0-20l4 4m-4-4l-4 4m4 16l4-4m-4 4l-4-4m-6-8h20m-20 0l4-4m-4 4l4 4m16-4l-4-4m4 4l-4 4"/>
+            {{else if eq .Icon "cloud-lightning"}}
+            <!-- Thunderstorm -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 13z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 17l-2 4h3l-2 4"/>
+            {{else if eq .Icon "fog"}}
+            <!-- Fog -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 8h16M4 12h16M4 16h12"/>
+            {{else}}
+            <!-- Default: cloud -->
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+            {{end}}
+        </svg>
+        <span class="text-white text-lg">{{printf "%.0f" .Temperature}}°</span>
+        <span>{{.Condition}}</span>
+    </div>
+
+    <span class="text-slate-600">|</span>
+
+    <!-- Feels Like -->
+    <div class="flex items-center gap-1.5">
+        <span class="text-slate-500">Feels</span>
+        <span>{{printf "%.0f" .FeelsLike}}°</span>
+    </div>
+
+    <span class="text-slate-600">|</span>
+
+    <!-- Humidity -->
+    <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 21a8 8 0 008-8c0-4-8-11-8-11S4 9 4 13a8 8 0 008 8z"/>
+        </svg>
+        <span>{{.Humidity}}%</span>
+    </div>
+
+    <span class="text-slate-600">|</span>
+
+    <!-- Wind -->
+    <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5a2 2 0 100 4H3m13 4a2 2 0 110 4H3m16-8a2 2 0 100-4H3"/>
+        </svg>
+        <span>{{printf "%.0f" .WindSpeed}} km/h</span>
+    </div>
+
+    <span class="text-slate-600">|</span>
+
+    <!-- Location -->
+    <div class="flex items-center gap-1.5">
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span>{{.Location}}</span>
+    </div>
+</div>
+{{end}}

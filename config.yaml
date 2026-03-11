@@ -1,0 +1,71 @@
+server:
+  port: ${HOMEDASH_PORT:-8080}
+  host: 0.0.0.0
+  hostname: ${HOMEDASH_HOSTNAME:-}
+
+home_page:
+  enabled: ${HOMEDASH_HOME_PAGE:-true}
+
+search:
+  placeholder: "Search..."
+  engines:
+    - name: Google
+      url: https://www.google.com/search?q=
+      icon: google
+    - name: DuckDuckGo
+      url: https://duckduckgo.com/?q=
+      icon: duckduckgo
+
+weather:
+  enabled: ${HOMEDASH_WEATHER_ENABLED:-true}
+  provider: ${HOMEDASH_WEATHER_PROVIDER:-openmeteo}
+  location: ${HOMEDASH_WEATHER_LOCATION:-London}
+  units: ${HOMEDASH_WEATHER_UNITS:-metric}
+  api_key: ${HOMEDASH_WEATHER_API_KEY:-}
+
+bookmarks:
+  enabled: true
+  items: []
+
+theme:
+  primary_color: "${HOMEDASH_PRIMARY_COLOR:-#1a1a2e}"
+  accent_color: "${HOMEDASH_ACCENT_COLOR:-#4a9eff}"
+  background_type: ${HOMEDASH_BACKGROUND_TYPE:-solid}
+  background_url: ${HOMEDASH_BACKGROUND_URL:-}
+
+# Services listed here act as overrides or supplements to auto-discovery.
+# Sonarr, Radarr, Prowlarr and Bazarr are fully auto-discovered from Docker —
+# leave their env vars unset and discovery handles URL + API key automatically.
+# Jellyfin and Jellyseerr can be discovered by container but need their API
+# keys provided manually (they are stored in a database, not a config file).
+services:
+  sonarr:
+    url: ${HOMEDASH_SONARR_URL:-}
+    api_key: ${HOMEDASH_SONARR_API_KEY:-}
+    external_url: ${HOMEDASH_SONARR_EXTERNAL_URL:-}
+  radarr:
+    url: ${HOMEDASH_RADARR_URL:-}
+    api_key: ${HOMEDASH_RADARR_API_KEY:-}
+    external_url: ${HOMEDASH_RADARR_EXTERNAL_URL:-}
+  prowlarr:
+    url: ${HOMEDASH_PROWLARR_URL:-}
+    api_key: ${HOMEDASH_PROWLARR_API_KEY:-}
+    external_url: ${HOMEDASH_PROWLARR_EXTERNAL_URL:-}
+  jellyfin:
+    url: ${HOMEDASH_JELLYFIN_URL:-}
+    api_key: ${HOMEDASH_JELLYFIN_API_KEY:-}
+    external_url: ${HOMEDASH_JELLYFIN_EXTERNAL_URL:-}
+  jellyseerr:
+    url: ${HOMEDASH_JELLYSEERR_URL:-}
+    api_key: ${HOMEDASH_JELLYSEERR_API_KEY:-}
+    external_url: ${HOMEDASH_JELLYSEERR_EXTERNAL_URL:-}
+  bazarr:
+    url: ${HOMEDASH_BAZARR_URL:-}
+    api_key: ${HOMEDASH_BAZARR_API_KEY:-}
+    external_url: ${HOMEDASH_BAZARR_EXTERNAL_URL:-}
+  plex:
+    url: ${HOMEDASH_PLEX_URL:-}
+    api_key: ${HOMEDASH_PLEX_API_KEY:-}
+    external_url: ${HOMEDASH_PLEX_EXTERNAL_URL:-}
+
+exclude: []

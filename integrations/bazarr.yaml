@@ -1,0 +1,55 @@
+# Bazarr Integration
+# Subtitle management for Sonarr and Radarr
+# https://bazarr.media
+
+id: bazarr
+name: Bazarr
+icon: bazarr
+color: "#e88d1a"
+
+detection:
+  images:
+    - linuxserver/bazarr
+    - hotio/bazarr
+    - "*bazarr*"
+  default_port: 6767
+
+  config_discovery:
+    config_path: /config/config/config.yaml
+    format: yaml
+    key: auth.apikey
+
+auth:
+  type: api_key
+  api_key:
+    location: header
+    name: X-API-KEY
+
+api:
+  base_path: /api
+
+  endpoints:
+    health:
+      path: /system/health
+      method: GET
+      interval: 60s
+      mapping:
+        status:
+          expr: "length($.data) == 0 ? 'ok' : 'warning'"
+
+    badges:
+      path: /badges
+      method: GET
+      interval: 120s
+      mapping:
+        episodes_missing: $.episodes
+        movies_missing: $.movies
+
+widgets:
+  - id: subtitles
+    name: Subtitles
+    endpoint: badges
+
+    fields:
+      episodes_missing: {label: "Episodes Missing", display: number}
+      movies_missing: {label: "Movies Missing", display: number}

@@ -1,0 +1,57 @@
+# Plex Integration
+# Media server
+# https://www.plex.tv
+
+id: plex
+name: Plex
+icon: plex
+color: "#e5a00d"
+
+detection:
+  images:
+    - linuxserver/plex
+    - plexinc/pms-docker
+    - hotio/plex
+    - "*plex*"
+  default_port: 32400
+
+  # No config_discovery: token must be provided manually.
+  # Find yours at: https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
+
+auth:
+  type: api_key
+  api_key:
+    location: query
+    name: X-Plex-Token
+
+api:
+  base_path: ""
+
+  endpoints:
+    sessions:
+      path: /status/sessions
+      method: GET
+      interval: 30s
+      mapping:
+        streams: $.MediaContainer.size
+
+    libraries:
+      path: /library/sections
+      method: GET
+      interval: 300s
+      mapping:
+        total:
+          expr: "length($.MediaContainer.Directory)"
+
+widgets:
+  - id: streams
+    name: Now Playing
+    endpoint: sessions
+    fields:
+      streams: {label: "Streams", display: number}
+
+  - id: libraries
+    name: Libraries
+    endpoint: libraries
+    fields:
+      total: {label: "Libraries", display: number}

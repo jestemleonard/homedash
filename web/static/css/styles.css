@@ -1,0 +1,232 @@
+/* Homedash Custom Styles */
+
+/* Hide elements until Alpine.js is ready */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Dark theme (default) */
+:root, .dark {
+    --color-primary: #1a1a2e;
+    --color-accent: #4a9eff;
+    --color-bg: #0f172a;
+    --color-bg-secondary: #0c1322;
+    --color-card: #1e293b;
+    --color-border: #334155;
+    --color-text: #ffffff;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+}
+
+/* Light theme */
+.light {
+    --color-primary: #f8fafc;
+    --color-accent: #3b82f6;
+    --color-bg: #f1f5f9;
+    --color-bg-secondary: #e2e8f0;
+    --color-card: #ffffff;
+    --color-border: #cbd5e1;
+    --color-text: #0f172a;
+    --color-text-secondary: #475569;
+    --color-text-muted: #64748b;
+}
+
+/* Base styles */
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Scroll snap container */
+html {
+    overflow: hidden;
+    height: 100vh;
+}
+
+body {
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    height: 100vh;
+}
+
+/* Snap sections */
+.snap-section {
+    scroll-snap-align: start;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Page indicator dots */
+.page-dots {
+    position: fixed;
+    right: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 40;
+}
+
+.page-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(148, 163, 184, 0.3);
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.3s ease;
+}
+
+.page-dot.active {
+    background: var(--color-accent);
+    transform: scale(1.25);
+}
+
+.page-dot:hover:not(.active) {
+    background: rgba(148, 163, 184, 0.6);
+}
+
+/* Scroll hint arrow */
+.scroll-hint {
+    animation: bounce-down 2s ease infinite;
+}
+
+@keyframes bounce-down {
+    0%, 100% { transform: translateY(0); opacity: 0.5; }
+    50% { transform: translateY(6px); opacity: 1; }
+}
+
+/* Hero section */
+.hero-section {
+    background: linear-gradient(to bottom, var(--color-bg), var(--color-bg-secondary));
+}
+
+/* Light theme overrides */
+.light .bg-slate-900 { background-color: var(--color-bg); }
+.light .bg-slate-800 { background-color: var(--color-card); }
+.light .bg-slate-700 { background-color: #e2e8f0; }
+.light .border-slate-700 { border-color: var(--color-border); }
+.light .border-slate-600 { border-color: #94a3b8; }
+.light .text-white { color: var(--color-text); }
+.light .text-slate-300 { color: var(--color-text-secondary); }
+.light .text-slate-400 { color: var(--color-text-muted); }
+.light .text-slate-500 { color: #94a3b8; }
+.light .text-slate-600 { color: #64748b; }
+.light .bg-white\/5 { background-color: rgba(0, 0, 0, 0.05); }
+.light .bg-white\/10 { background-color: rgba(0, 0, 0, 0.08); }
+.light .hover\:bg-white\/10:hover { background-color: rgba(0, 0, 0, 0.1); }
+.light .border-white\/10 { border-color: rgba(0, 0, 0, 0.1); }
+.light .border-white\/20 { border-color: rgba(0, 0, 0, 0.15); }
+.light .hover\:border-white\/20:hover { border-color: rgba(0, 0, 0, 0.2); }
+.light .bg-slate-700\/50 { background-color: rgba(226, 232, 240, 0.5); }
+.light .border-slate-700\/50 { border-color: rgba(203, 213, 225, 0.5); }
+
+/* Accent color for Tailwind */
+.bg-accent {
+    background-color: var(--color-accent);
+}
+
+.text-accent {
+    color: var(--color-accent);
+}
+
+.border-accent {
+    border-color: var(--color-accent);
+}
+
+.ring-accent\/20 {
+    --tw-ring-color: rgb(74 158 255 / 0.2);
+}
+
+.light .hover\:text-accent:hover {
+    color: var(--color-accent);
+}
+
+/* Smooth transitions for HTMX swaps */
+.htmx-swapping {
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+}
+
+.htmx-settling {
+    opacity: 1;
+    transition: opacity 150ms ease-in;
+}
+
+/* Search input focus styles */
+input:focus {
+    outline: none;
+}
+
+/* Card hover effects */
+.bg-slate-800:hover {
+    border-color: rgba(74, 158, 255, 0.3);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+.light ::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* Loading indicator for HTMX requests */
+.htmx-request .htmx-indicator {
+    opacity: 1;
+}
+
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+}
+
+/* Optimistic toggle: flip visually the instant the request fires */
+.toggle-btn[data-action="stop"].htmx-request {
+    background-color: rgb(51 65 85) !important;
+}
+.toggle-btn[data-action="stop"].htmx-request > .toggle-knob {
+    right: auto !important;
+    left: 0.25rem !important;
+    background-color: rgb(100 116 139) !important;
+}
+.toggle-btn[data-action="start"].htmx-request {
+    background-color: rgba(34, 197, 94, 0.2) !important;
+}
+.toggle-btn[data-action="start"].htmx-request > .toggle-knob {
+    left: auto !important;
+    right: 0.25rem !important;
+    background-color: rgb(34, 197, 94) !important;
+}
+
+/* Stats bars - smooth width transitions */
+[style*="width:"] {
+    transition: width 0.5s ease-out;
+}
+
+/* Theme transition */
+body, .hero-section, .bg-slate-800, .bg-slate-900 {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}

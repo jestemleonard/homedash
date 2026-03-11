@@ -1,0 +1,77 @@
+services:
+  homedash:
+    build: .
+    container_name: homedash
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      # ── Server ────────────────────────────────────────────────────────────
+      # Your server's LAN IP or hostname. Required for auto-discovered service
+      # links to be reachable from your browser.
+      HOMEDASH_HOSTNAME: 192.168.0.100
+
+      # Port homedash listens on (default: 8080).
+      # HOMEDASH_PORT: 8080
+
+      # ── Pages ─────────────────────────────────────────────────────────────
+      # Set to false to skip the search/weather page and land on services.
+      # HOMEDASH_HOME_PAGE: true
+
+      # ── Weather ───────────────────────────────────────────────────────────
+      # HOMEDASH_WEATHER_ENABLED: true
+      # HOMEDASH_WEATHER_LOCATION: London
+      # HOMEDASH_WEATHER_UNITS: metric        # metric or imperial
+      # HOMEDASH_WEATHER_PROVIDER: openmeteo  # openmeteo (free) or openweathermap
+      # HOMEDASH_WEATHER_API_KEY:             # only required for openweathermap
+
+      # ── Services ──────────────────────────────────────────────────────────
+      # Sonarr, Radarr, Prowlarr and Bazarr are fully auto-discovered if running
+      # in Docker — URL defaults to http://HOMEDASH_HOSTNAME:SERVICE_PORT
+      # Only set URL if not using Docker.
+      # API keys are extracted automatically, usually there's no need to set them.
+      #
+      # EXTERNAL_URL is the clickable link in the dashboard (e.g. a reverse proxy
+      # address). If not set, it falls back to the service URL.
+
+      # HOMEDASH_SONARR_URL: http://192.168.0.100:8989       # only if not using Docker
+      # HOMEDASH_SONARR_API_KEY:
+      # HOMEDASH_SONARR_EXTERNAL_URL: http://sonarr.home
+      # HOMEDASH_RADARR_URL: http://192.168.0.100:7878       # only if not using Docker
+      # HOMEDASH_RADARR_API_KEY:
+      # HOMEDASH_RADARR_EXTERNAL_URL: http://radarr.home
+      # HOMEDASH_PROWLARR_URL: http://192.168.0.100:9696     # only if not using Docker
+      # HOMEDASH_PROWLARR_API_KEY:
+      # HOMEDASH_PROWLARR_EXTERNAL_URL: http://prowlarr.home
+      # HOMEDASH_BAZARR_URL: http://192.168.0.100:6767       # only if not using Docker
+      # HOMEDASH_BAZARR_API_KEY:
+      # HOMEDASH_BAZARR_EXTERNAL_URL: http://bazarr.home
+
+      # Display order for services on the dashboard (comma-separated).
+      # Unlisted services appear after these in alphabetical order.
+      HOMEDASH_SERVICE_ORDER: plex,jellyfin,jellyseerr,sonarr,radarr,prowlarr,bazarr
+      # Explicitly exclude auto-discovered services (comma-separated).
+      # HOMEDASH_EXCLUDE: bazarr,prowlarr
+
+      # Plex, Jellyfin and Jellyseerr can be discovered by container but their
+      # API keys must be provided manually (stored in database, not a config file).
+      #   Plex:       https://support.plex.tv/articles/204059436-finding-an-authentication-token-x-plex-token/
+      #   Jellyfin:   Dashboard → API Keys → + New API Key
+      #   Jellyseerr: Settings → General → API Key
+      # HOMEDASH_PLEX_URL: http://192.168.0.100:32400        # only if not using Docker
+      # HOMEDASH_PLEX_API_KEY:
+      # HOMEDASH_PLEX_EXTERNAL_URL: http://plex.home
+      # HOMEDASH_JELLYFIN_URL: http://192.168.0.100:8096     # only if not using Docker
+      # HOMEDASH_JELLYFIN_API_KEY:
+      # HOMEDASH_JELLYFIN_EXTERNAL_URL: http://jellyfin.home
+      # HOMEDASH_JELLYSEERR_URL: http://192.168.0.100:5055   # only if not using Docker
+      # HOMEDASH_JELLYSEERR_API_KEY:
+      # HOMEDASH_JELLYSEERR_EXTERNAL_URL: http://jellyseerr.home
+
+      # ── Theme ─────────────────────────────────────────────────────────────
+      # HOMEDASH_ACCENT_COLOR: "#4a9eff"
+      # HOMEDASH_PRIMARY_COLOR: "#1a1a2e"
+      # HOMEDASH_BACKGROUND_TYPE: solid       # solid or image
+      # HOMEDASH_BACKGROUND_URL:              # URL to background image

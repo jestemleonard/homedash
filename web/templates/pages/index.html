@@ -1,0 +1,398 @@
+{{define "content"}}
+<!-- Initialize server bookmarks -->
+{{if and .Bookmarks .Bookmarks.Enabled}}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.store('serverBookmarks', [
+            {{range .Bookmarks.Items}}
+            { name: '{{.Name}}', url: '{{.URL}}', icon: '{{.Icon}}' },
+            {{end}}
+        ]);
+    });
+</script>
+{{end}}
+
+{{if .HomePageEnabled}}
+<!-- ===================== HOME PAGE (search + weather) ===================== -->
+<section id="page-0" class="hero-section snap-section flex flex-col relative" x-init="serverBookmarks = Alpine.store('serverBookmarks') || []">
+    <!-- Top bar: Stats (left) and Settings (right) -->
+    <div class="flex justify-between items-start p-4 absolute top-0 left-0 right-0">
+        <!-- System Stats - Top Left -->
+        <div hx-get="/api/system/html" hx-trigger="load, every 5s" hx-swap="innerHTML">
+            {{template "stats" .System}}
+        </div>
+
+        <div class="flex items-center gap-2">
+            {{if and .Bookmarks .Bookmarks.Enabled}}
+            <!-- Bookmarks Button + Dropdown -->
+            <div class="relative" x-show="settings.bookmarks">
+                <button
+                    @click="bookmarksOpen = !bookmarksOpen"
+                    class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors"
+                    title="Bookmarks"
+                >
+                    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                    </svg>
+                </button>
+                {{template "bookmarks-dropdown" .}}
+            </div>
+            {{end}}
+
+            <!-- Settings Button -->
+            {{template "settings-button" .}}
+        </div>
+    </div>
+
+    <!-- Centered Content: Search + Weather -->
+    <div class="flex-1 flex flex-col items-center justify-center px-4">
+        <div class="w-full max-w-2xl">
+            {{template "search" .Search}}
+        </div>
+
+        {{if .Weather}}
+        <div class="mt-6" x-show="settings.weather">
+            {{template "weather" .Weather}}
+        </div>
+        {{end}}
+    </div>
+
+    {{if .Services}}
+    <!-- Scroll hint -->
+    <div class="absolute bottom-6 left-1/2 -translate-x-1/2 scroll-hint">
+        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </div>
+    {{end}}
+</section>
+{{end}}
+
+<!-- ===================== SERVICES PAGE ===================== -->
+{{if .Services}}
+<section id="{{if .HomePageEnabled}}page-1{{else}}page-0{{end}}" class="snap-section py-12 px-4 overflow-y-auto"
+    {{if not .HomePageEnabled}}x-init="serverBookmarks = Alpine.store('serverBookmarks') || []"{{end}}>
+    <div class="mx-auto max-w-6xl">
+
+        {{if not .HomePageEnabled}}
+        <!-- Top bar (only shown here when home page is disabled) -->
+        <div class="flex justify-between items-center mb-8">
+            <div hx-get="/api/system/html" hx-trigger="load, every 5s" hx-swap="innerHTML">
+                {{template "stats" .System}}
+            </div>
+            <div class="flex items-center gap-2">
+                {{if and .Bookmarks .Bookmarks.Enabled}}
+                <div class="relative" x-show="settings.bookmarks">
+                    <button
+                        @click="bookmarksOpen = !bookmarksOpen"
+                        class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors"
+                        title="Bookmarks"
+                    >
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                        </svg>
+                    </button>
+                    {{template "bookmarks-dropdown" .}}
+                </div>
+                {{end}}
+                {{template "settings-button" .}}
+            </div>
+        </div>
+        {{else}}
+        <h2 class="text-slate-500 text-sm font-medium uppercase tracking-wider mb-8">Services</h2>
+        {{end}}
+
+        <div id="services-list" hx-get="/api/services/html" hx-trigger="load, every 10s" hx-swap="innerHTML"
+            :class="settings.layout === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'flex flex-col gap-4'">
+            {{range .Services}}
+            {{template "service-group" .}}
+            {{end}}
+        </div>
+    </div>
+</section>
+{{end}}
+
+<!-- ===================== SETTINGS MODAL ===================== -->
+<div
+    x-cloak
+    x-show="settingsOpen"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    @click.self="settingsOpen = false"
+>
+    <div
+        x-show="settingsOpen"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0 scale-95"
+        x-transition:enter-end="opacity-100 scale-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 scale-100"
+        x-transition:leave-end="opacity-0 scale-95"
+        class="bg-slate-800 border border-slate-700 rounded-2xl shadow-xl w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col"
+    >
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-700 flex-shrink-0">
+            <h2 class="text-lg font-medium text-white">Settings</h2>
+            <button @click="settingsOpen = false; cancelEditBookmark()" class="text-slate-400 hover:text-white transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 space-y-6 overflow-y-auto">
+            <!-- Theme -->
+            <div>
+                <label class="text-sm font-medium text-slate-300 mb-3 block">Theme</label>
+                <div class="flex gap-2">
+                    <button
+                        @click="setTheme('dark')"
+                        :class="settings.theme === 'dark' ? 'bg-accent text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+                        class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >Dark</button>
+                    <button
+                        @click="setTheme('light')"
+                        :class="settings.theme === 'light' ? 'bg-accent text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+                        class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >Light</button>
+                    <button
+                        @click="setTheme('auto')"
+                        :class="settings.theme === 'auto' ? 'bg-accent text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+                        class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    >Auto</button>
+                </div>
+            </div>
+
+            <!-- Layout -->
+            <div>
+                <label class="text-sm font-medium text-slate-300 mb-3 block">Widget Layout</label>
+                <div class="flex gap-2">
+                    <button
+                        @click="setLayout('list')"
+                        :class="settings.layout === 'list' ? 'bg-accent text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+                        class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                        List
+                    </button>
+                    <button
+                        @click="setLayout('grid')"
+                        :class="settings.layout === 'grid' ? 'bg-accent text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+                        class="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                        </svg>
+                        Grid
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toggles -->
+            {{if .HomePageEnabled}}
+            <div class="space-y-4">
+                <!-- Weather Toggle -->
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-300">Show Weather</span>
+                    <button
+                        @click="toggleSetting('weather')"
+                        :class="settings.weather ? 'bg-green-500' : 'bg-slate-600'"
+                        class="relative w-11 h-6 rounded-full transition-colors"
+                    >
+                        <div :class="settings.weather ? 'translate-x-5' : 'translate-x-1'" class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+                    </button>
+                </div>
+
+                <!-- Bookmarks Toggle -->
+                {{if and .Bookmarks .Bookmarks.Enabled}}
+                <div class="flex items-center justify-between">
+                    <span class="text-sm text-slate-300">Show Bookmarks</span>
+                    <button
+                        @click="toggleSetting('bookmarks')"
+                        :class="settings.bookmarks ? 'bg-green-500' : 'bg-slate-600'"
+                        class="relative w-11 h-6 rounded-full transition-colors"
+                    >
+                        <div :class="settings.bookmarks ? 'translate-x-5' : 'translate-x-1'" class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+                    </button>
+                </div>
+                {{end}}
+            </div>
+            {{end}}
+
+            {{if and .Bookmarks .Bookmarks.Enabled}}
+            <!-- Bookmarks Manager -->
+            <div x-show="settings.bookmarks">
+                <div class="flex items-center justify-between mb-3">
+                    <label class="text-sm font-medium text-slate-300">Bookmarks</label>
+                    <div class="flex gap-2">
+                        <button
+                            @click="resetBookmarks()"
+                            x-show="settings.customBookmarks !== null"
+                            class="text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                        >Reset</button>
+                        <button
+                            @click="startAddBookmark()"
+                            class="text-xs text-accent hover:text-white transition-colors"
+                        >+ Add</button>
+                    </div>
+                </div>
+
+                <!-- Add/Edit Form -->
+                <div x-show="editingBookmark !== null" class="bg-slate-700/50 rounded-lg p-3 mb-3 space-y-3">
+                    <input
+                        type="text"
+                        x-model="bookmarkForm.name"
+                        placeholder="Name"
+                        class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-accent focus:outline-none"
+                    >
+                    <input
+                        type="text"
+                        x-model="bookmarkForm.url"
+                        placeholder="URL (e.g., google.com)"
+                        class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-accent focus:outline-none"
+                    >
+                    <div>
+                        <label class="text-xs text-slate-400 mb-1 block">Icon</label>
+                        <div class="flex flex-wrap gap-1">
+                            <template x-for="icon in bookmarkIcons" :key="icon">
+                                <button
+                                    @click="bookmarkForm.icon = icon"
+                                    :class="bookmarkForm.icon === icon ? 'bg-accent text-white' : 'bg-slate-600 text-slate-400 hover:bg-slate-500'"
+                                    class="w-8 h-8 rounded flex items-center justify-center transition-colors"
+                                    :title="icon"
+                                >
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path x-show="icon === 'link'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                                        <path x-show="icon === 'film'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                                        <g x-show="icon === 'play'">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </g>
+                                        <path x-show="icon === 'code'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                                        <path x-show="icon === 'mail'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        <path x-show="icon === 'globe'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                                        <path x-show="icon === 'home'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                        <path x-show="icon === 'book'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                        <path x-show="icon === 'music'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                                        <path x-show="icon === 'cloud'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                                    </svg>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="saveBookmark()" class="flex-1 bg-accent hover:bg-accent/80 text-white text-sm py-2 rounded-lg transition-colors">Save</button>
+                        <button @click="cancelEditBookmark()" class="flex-1 bg-slate-600 hover:bg-slate-500 text-white text-sm py-2 rounded-lg transition-colors">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Bookmark List -->
+                <div class="space-y-2 bg-slate-700/30 rounded-lg p-3">
+                    <template x-for="(bookmark, index) in bookmarks" :key="index">
+                        <div class="flex items-center justify-between group">
+                            <div class="flex items-center gap-2 flex-1 min-w-0">
+                                <button
+                                    @click="toggleBookmark(bookmark.name)"
+                                    :class="isBookmarkVisible(bookmark.name) ? 'bg-green-500' : 'bg-slate-600'"
+                                    class="relative w-8 h-5 rounded-full transition-colors flex-shrink-0"
+                                >
+                                    <div :class="isBookmarkVisible(bookmark.name) ? 'translate-x-3' : 'translate-x-1'" class="absolute top-1 w-3 h-3 bg-white rounded-full transition-transform"></div>
+                                </button>
+                                <span class="text-sm text-slate-400 truncate" x-text="bookmark.name"></span>
+                            </div>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button @click="startEditBookmark(index)" class="p-1 text-slate-500 hover:text-white transition-colors" title="Edit">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                </button>
+                                <button @click="deleteBookmark(index)" class="p-1 text-slate-500 hover:text-red-400 transition-colors" title="Delete">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                    <div x-show="bookmarks.length === 0" class="text-sm text-slate-500 text-center py-2">
+                        No bookmarks yet
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+    </div>
+</div>
+{{end}}
+
+{{define "settings-button"}}
+<button
+    @click="settingsOpen = true"
+    class="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-colors"
+    title="Settings"
+>
+    <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+</button>
+{{end}}
+
+{{define "bookmarks-dropdown"}}
+<div
+    x-cloak
+    x-show="bookmarksOpen"
+    @click.outside="bookmarksOpen = false"
+    x-transition:enter="transition ease-out duration-100"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-75"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    class="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-lg overflow-hidden z-50"
+>
+    <template x-for="(bookmark, index) in bookmarks" :key="index">
+        <a
+            :href="bookmark.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            x-show="isBookmarkVisible(bookmark.name)"
+            class="flex items-center gap-3 px-4 py-3 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+        >
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path x-show="bookmark.icon === 'film'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/>
+                <g x-show="bookmark.icon === 'play'">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </g>
+                <path x-show="bookmark.icon === 'code'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                <path x-show="bookmark.icon === 'mail'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                <path x-show="bookmark.icon === 'globe'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                <path x-show="bookmark.icon === 'home'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                <path x-show="bookmark.icon === 'book'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                <path x-show="bookmark.icon === 'music'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                <path x-show="bookmark.icon === 'cloud'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>
+                <path x-show="!bookmark.icon || bookmark.icon === 'link'" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            <span class="text-sm" x-text="bookmark.name"></span>
+        </a>
+    </template>
+    <div x-show="bookmarks.filter(b => isBookmarkVisible(b.name)).length === 0" class="px-4 py-3 text-sm text-slate-500 text-center space-y-1">
+        <p>No bookmarks yet</p>
+        <p class="flex items-center justify-center gap-1">
+            Add some in settings
+            <svg class="w-3 h-3 inline rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            </svg>
+        </p>
+    </div>
+</div>
+{{end}}

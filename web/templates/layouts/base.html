@@ -1,0 +1,62 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .Title}}{{.Title}} - {{end}}Homedash</title>
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '{{default "#1a1a2e" .Theme.PrimaryColor}}',
+                        accent: '{{default "#4a9eff" .Theme.AccentColor}}',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <!-- Custom JS (must load before Alpine) -->
+    <script src="/static/js/app.js?v=4"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="/static/css/styles.css?v=2">
+
+    {{if eq .Theme.BackgroundType "image"}}
+    <style>
+        body.bg-custom {
+            background-image: url('{{.Theme.BackgroundURL}}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+    </style>
+    {{end}}
+
+    {{if .CustomCSS}}<link rel="stylesheet" href="/static/css/custom.css">{{end}}
+</head>
+<body class="bg-slate-900 text-white{{if eq .Theme.BackgroundType "image"}} bg-custom{{end}}" x-data="app">
+    <!-- Page indicator dots (auto-discovered from snap sections) -->
+    <nav class="page-dots" x-data="pageDots" x-show="pages.length > 1" x-cloak>
+        <template x-for="page in pages" :key="page">
+            <button class="page-dot" :class="currentPage === page && 'active'" @click="goTo(page)"></button>
+        </template>
+    </nav>
+
+    {{template "content" .}}
+</body>
+</html>
+{{end}}

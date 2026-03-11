@@ -1,0 +1,99 @@
+{{define "service-group"}}
+<div class="bg-slate-800 rounded-xl border transition-colors
+    {{- if eq .Health "healthy"}} border-green-500/30 hover:border-green-500/50
+    {{- else if eq .Health "warning"}} border-yellow-500/30 hover:border-yellow-500/50
+    {{- else if eq .Health "error"}} border-red-500/30 hover:border-red-500/50
+    {{- else}} border-slate-700 hover:border-slate-600
+    {{- end}}"
+>
+    <!-- Header: Icon, Name, Toggle -->
+    <div class="flex items-center justify-between p-4 border-b border-slate-700/50">
+        <div class="flex items-center gap-3">
+            <!-- Icon -->
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden"
+                style="background-color: {{.Color}}20;">
+                <img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/{{.Icon}}.svg"
+                    alt="{{.Name}}"
+                    class="w-6 h-6"
+                    onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                <svg class="w-5 h-5 hidden" style="color: {{.Color}};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+            </div>
+
+            <!-- Service Name -->
+            {{if .URL}}
+            <a href="{{.URL}}" target="_blank" rel="noopener noreferrer" class="text-white text-lg font-semibold hover:text-accent transition-colors">
+                {{.Name}}
+            </a>
+            {{else}}
+            <span class="text-white text-lg font-semibold">{{.Name}}</span>
+            {{end}}
+        </div>
+
+        <!-- Toggle -->
+        {{if .ContainerID}}
+        <button class="toggle-btn relative w-10 h-6 rounded-full transition-colors
+            {{- if eq .Health "healthy"}} bg-green-500/20
+            {{- else if eq .Health "warning"}} bg-green-500/20
+            {{- else}} bg-slate-700
+            {{- end}}"
+            {{- if or (eq .Health "healthy") (eq .Health "warning")}}
+            hx-post="/api/containers/{{.ContainerID}}/stop"
+            data-action="stop"
+            {{- else}}
+            hx-post="/api/containers/{{.ContainerID}}/start"
+            data-action="start"
+            {{- end}}
+            hx-target="#services-list"
+            hx-swap="innerHTML"
+        >
+            <div class="toggle-knob absolute top-1 w-4 h-4 rounded-full transition-all
+                {{- if or (eq .Health "healthy") (eq .Health "warning")}} right-1 bg-green-500
+                {{- else}} left-1 bg-slate-500
+                {{- end}}"></div>
+        </button>
+        {{else}}
+        <button class="relative w-10 h-6 rounded-full transition-colors
+            {{- if eq .Health "healthy"}} bg-green-500/20
+            {{- else}} bg-slate-700
+            {{- end}}"
+            disabled
+        >
+            <div class="absolute top-1 w-4 h-4 rounded-full transition-all
+                {{- if eq .Health "healthy"}} right-1 bg-green-500
+                {{- else}} left-1 bg-slate-500
+                {{- end}}"></div>
+        </button>
+        {{end}}
+    </div>
+
+    <!-- Stats: All fields from all widgets merged -->
+    <div class="p-4">
+        {{if eq .Health "off"}}
+        <div class="flex items-start gap-2 text-slate-500">
+            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+            </svg>
+            <span class="text-sm">Container stopped</span>
+        </div>
+        {{else if eq .Health "error"}}
+        <div class="flex items-start gap-2 text-red-400">
+            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span class="text-sm">Service unavailable</span>
+        </div>
+        {{else}}
+        <div class="space-y-2">
+            {{range .Widgets}}{{range .Fields}}
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-400">{{.Label}}</span>
+                <span class="text-white">{{.Value}}</span>
+            </div>
+            {{end}}{{end}}
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

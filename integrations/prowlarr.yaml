@@ -1,0 +1,56 @@
+# Prowlarr Integration
+# Indexer manager for Sonarr/Radarr
+# https://prowlarr.com
+
+id: prowlarr
+name: Prowlarr
+icon: prowlarr
+color: "#e88d1a"
+
+detection:
+  images:
+    - linuxserver/prowlarr
+    - hotio/prowlarr
+    - "*prowlarr*"
+  default_port: 9696
+
+  config_discovery:
+    config_path: /config/config.xml
+    format: xml
+    key: ApiKey
+
+auth:
+  type: api_key
+  api_key:
+    location: header
+    name: X-Api-Key
+
+api:
+  base_path: /api/v1
+
+  endpoints:
+    health:
+      path: /health
+      method: GET
+      interval: 60s
+      mapping:
+        status: $[0].type
+
+    indexer:
+      path: /indexer
+      method: GET
+      interval: 300s
+      mapping:
+        total:
+          expr: "length($)"
+        enabled:
+          expr: "length($[?@.enable == true])"
+
+widgets:
+  - id: indexers
+    name: Indexers
+    endpoint: indexer
+
+    fields:
+      total: {label: "Indexers", display: number}
+      enabled: {label: "Enabled", display: number}

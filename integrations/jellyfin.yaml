@@ -1,0 +1,45 @@
+# Jellyfin Integration
+# Open-source media server
+# https://jellyfin.org
+
+id: jellyfin
+name: Jellyfin
+icon: jellyfin
+color: "#00a4dc"
+
+detection:
+  images:
+    - jellyfin/jellyfin
+    - linuxserver/jellyfin
+    - "*jellyfin*"
+  default_port: 8096
+
+  # No config_discovery: API keys are stored in SQLite, not a config file.
+  # Generate one in Jellyfin → Dashboard → API Keys, then set it in config.yaml.
+
+# Jellyfin accepts the API key as a query parameter on every request.
+auth:
+  type: api_key
+  api_key:
+    location: query
+    name: api_key
+
+api:
+  base_path: ""
+
+  endpoints:
+    sessions:
+      path: /Sessions
+      method: GET
+      interval: 30s
+      mapping:
+        streams:
+          expr: "length($[?@.NowPlayingItem])"
+
+widgets:
+  - id: streams
+    name: Now Playing
+    endpoint: sessions
+
+    fields:
+      streams: {label: "Streams", display: number}

@@ -1,0 +1,60 @@
+# Sonarr Integration
+# TV show management and automation
+# https://sonarr.tv
+
+id: sonarr
+name: Sonarr
+icon: sonarr
+color: "#35c5f4"
+
+detection:
+  images:
+    - linuxserver/sonarr
+    - hotio/sonarr
+    - sonarr/sonarr
+    - "*sonarr*"
+  default_port: 8989
+
+  config_discovery:
+    config_path: /config/config.xml
+    format: xml
+    key: ApiKey
+
+auth:
+  type: api_key
+  api_key:
+    location: header
+    name: X-Api-Key
+
+api:
+  base_path: /api/v3
+
+  endpoints:
+    health:
+      path: /health
+      method: GET
+      interval: 60s
+      mapping:
+        status: $[0].type
+
+    series:
+      path: /series
+      method: GET
+      interval: 300s
+      mapping:
+        total:
+          expr: "length($)"
+        monitored:
+          expr: "length($[?@.monitored == true])"
+        episodes:
+          expr: "sum($[*].statistics.episodeFileCount)"
+
+widgets:
+  - id: library
+    name: Library
+    endpoint: series
+
+    fields:
+      total: {label: "Series", display: number}
+      monitored: {label: "Monitored", display: number}
+      episodes: {label: "Episodes", display: number}

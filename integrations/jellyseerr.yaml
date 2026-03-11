@@ -1,0 +1,49 @@
+# Jellyseerr Integration
+# Media request management for Jellyfin
+# https://github.com/Fallenbagel/jellyseerr
+
+id: jellyseerr
+name: Jellyseerr
+icon: jellyseerr
+color: "#6366f1"
+
+detection:
+  images:
+    - fallenbagel/jellyseerr
+    - hotio/jellyseerr
+    - "*jellyseerr*"
+  default_port: 5055
+
+  # No config_discovery: API keys are stored in the database.
+  # Find yours in Jellyseerr → Settings → General → API Key, then set it in config.yaml.
+
+auth:
+  type: api_key
+  api_key:
+    location: header
+    name: X-Api-Key
+
+api:
+  base_path: /api/v1
+
+  endpoints:
+    requests:
+      path: /request/count
+      method: GET
+      interval: 120s
+      mapping:
+        pending: $.pending
+        approved: $.approved
+        available: $.available
+        total: $.total
+
+widgets:
+  - id: requests
+    name: Requests
+    endpoint: requests
+
+    fields:
+      pending: {label: "Pending", display: number}
+      approved: {label: "Approved", display: number}
+      available: {label: "Available", display: number}
+      total: {label: "Total", display: number}
