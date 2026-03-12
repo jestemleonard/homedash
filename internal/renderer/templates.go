@@ -11,7 +11,7 @@ import (
 )
 
 // Override directories checked before default templates
-var overrideDirs = []string{"overrides/templates", "custom/templates"}
+var overrideDirs = []string{"overrides/templates"}
 
 // TemplateCache holds parsed templates
 type TemplateCache struct {

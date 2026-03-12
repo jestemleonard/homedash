@@ -150,11 +150,11 @@ You can still use `${VAR:-default}` syntax inside your own config file.
 
 ### Template and static file overrides
 
-You can override any template or static file by placing your version in `overrides/` or `custom/` directories (mounted as volumes). Homedash checks these directories first before falling back to the defaults:
+You can override any template or static file by placing your version in the `overrides/` directory (mounted as a volume). Homedash checks this directory first before falling back to the defaults:
 
-- **Templates**: `overrides/templates/` or `custom/templates/` — override layout, pages, or individual components
-- **Static files**: `overrides/static/` or `custom/static/` — override CSS, JS, or images
-- **Custom CSS**: Place a `custom.css` in `overrides/static/css/` or `custom/static/css/` and it will be automatically included
+- **Templates**: `overrides/templates/` — override layout, pages, or individual components
+- **Static files**: `overrides/static/` — override CSS, JS, or images
+- **Custom CSS**: Place a `custom.css` in `overrides/static/css/` and it will be automatically included
 
 For example, to override the service group component:
 

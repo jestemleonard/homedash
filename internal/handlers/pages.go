@@ -25,11 +25,8 @@ type PageHandler struct {
 func NewPageHandler(cfg *config.Config, r *renderer.Renderer, sys *services.SystemService, weather *services.WeatherService, eng *engine.Engine) *PageHandler {
 	// Check for custom.css in override locations
 	hasCustomCSS := false
-	for _, path := range []string{"overrides/static/css/custom.css", "custom/static/css/custom.css"} {
-		if _, err := os.Stat(path); err == nil {
-			hasCustomCSS = true
-			break
-		}
+	if _, err := os.Stat("overrides/static/css/custom.css"); err == nil {
+		hasCustomCSS = true
 	}
 
 	return &PageHandler{

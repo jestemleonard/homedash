@@ -8,7 +8,7 @@ import (
 )
 
 // Override directories checked before default static dir
-var staticOverrideDirs = []string{"overrides/static", "custom/static"}
+var staticOverrideDirs = []string{"overrides/static"}
 
 // StaticHandler serves static files with override support
 type StaticHandler struct {
